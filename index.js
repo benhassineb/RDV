@@ -2,10 +2,14 @@ const fetch = require('node-fetch');
 const nodemailer = require('nodemailer');
 
 const getMailOptions = (body) => {
+    // Use of Date.now() function 
+    let d = Date(Date.now());
+    // Converting the number of millisecond in date string 
+    let a = d.toString()
     return {
-        from: 'japimeys@gmail.com',
-        to: 'b.benhassine@hotmail.com',
-        subject: 'Available Now -' + Date.now(),
+        from: '----------',
+        to: '---------------',
+        subject: 'Available Now -' + a,
         text: body
     }
 };
@@ -16,30 +20,31 @@ let headers = {
     'Upgrade-Insecure-Requests': '1',
     'Cookie': 'eZSESSID=4il08qi1eiij28l1e1f6ro7of0'
 }
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: '----------',
+        pass: '----------'
+    }
+});
 
-fetch('http://www.hauts-de-seine.gouv.fr/booking/create/13525/0', {
+function query() {
+    return fetch('http://www.hauts-de-seine.gouv.fr/booking/create/13525/0', {
         method: 'POST',
         body: 'condition=on&nextButton=Effectuer+une+demande+de+rendez-vous',
         headers: headers
     })
-    .then(res => res.text())
-    .then(html => {
-        let index = html.indexOf("Il n'existe plus de plage horaire libre pour votre demande de rendez-vous. Veuillez recommencer ultérieurement.");
-        if (index !== -1) {
-            let mailOptions = getMailOptions(html);
-            sendMail(mailOptions);
-        }
+        .then(res => res.text())
+        .then(html => {
+            let index = html.indexOf("Il n'existe plus de plage horaire libre pour votre demande de rendez-vous. Veuillez recommencer ultérieurement.");
+            if (index === -1) {
+                sendMail(getMailOptions(html));
+            }
+        }).catch(err => console.log(err));
+}
 
-    }).catch(err => console.log(err));
 
 
-let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'Passw',
-        pass: 'dzzdzdz!'
-    }
-});
 
 const sendMail = (mailOptions) => {
     transporter.sendMail(mailOptions, (error, info) => {
@@ -50,3 +55,4 @@ const sendMail = (mailOptions) => {
         }
     });
 }
+setInterval(function(){ query(); }, 10000);
