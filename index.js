@@ -1,14 +1,20 @@
 const fetch = require('node-fetch');
 const nodemailer = require('nodemailer');
 
+const args = process.argv.slice(2);
+// // print process.argv
+// args.forEach(function (val, index, array) {
+//     console.log(index + ': ' + val);
+//   });
+
 const getMailOptions = (body) => {
     // Use of Date.now() function 
     let d = Date(Date.now());
     // Converting the number of millisecond in date string 
     let a = d.toString()
     return {
-        from: '----------',
-        to: '---------------',
+        from: args[0],
+        to: args[2],
         subject: 'Available Now -' + a,
         text: body
     }
@@ -23,8 +29,8 @@ let headers = {
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: '----------',
-        pass: '----------'
+        user: args[0],
+        pass: args[1]
     }
 });
 
@@ -34,6 +40,11 @@ function query() {
         body: 'condition=on&nextButton=Effectuer+une+demande+de+rendez-vous',
         headers: headers
     })
+        .then(response => {
+            if (!response.ok)
+                throw 'response was KO';
+            return response;
+        })
         .then(res => res.text())
         .then(html => {
             let index = html.indexOf("Il n'existe plus de plage horaire libre pour votre demande de rendez-vous. Veuillez recommencer ultérieurement.");
@@ -55,4 +66,4 @@ const sendMail = (mailOptions) => {
         }
     });
 }
-setInterval(function(){ query(); }, 10000);
+setInterval(function () { query(); }, 10000);
